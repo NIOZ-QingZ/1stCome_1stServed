@@ -1,3 +1,18 @@
+# Title: "Lotka-Volterra_1stCome1stServed.R"
+# Description: Model is based on Lotka-Volterra competition equations. 
+# Version 1: two species and four parameters including initial biomass, growth rates, competition effects, carrying capacity, species introudcing day.
+# The code includes:
+#   section 1: the model; 
+# notes: NA
+# section 2; sensitivity analysis; 
+# notes: NA
+# section 3: visualization
+# notes: the sensitivity analysis takes more than 1hr to run. The simulation results are saved in the csv file entitled "sen_tIntro_K_P.csv". If you just want to play with the simulation results and don't do new sensitivy analysis, you can skip this section and jump to the next section about visualization.
+
+
+########################################
+#### section 1: Lotka-Volterra model############
+#############################
 # Load required libraries
 library(deSolve)
 library(ggplot2)
@@ -61,8 +76,13 @@ plot(output_df$time, output_df$P1, col="red", ylab="species abundance",ylim=c(0,
 lines(output_df$time, output_df$P2, col="green")
 legend("right",legend=c("species 1 (K1=100)","species 2 (K2=90)"), col=c("red","green"), lty=c(1,1),text.col = c("red","green"))
 
+########################################
+#### section 2";" sensitivity analysis############
+#############################
+
+
 ################ 
-### senstivity analysis of individual parameter
+### section 2.1. senstivity analysis of individual parameter
 ##############
 
 #### 
@@ -220,8 +240,11 @@ abline(h=0.5, col="red")
 abline(v=1, col="red")
 
 #####################
-###### sensitivity analysis of all parameters:
+###### 2.2. sensitivity analysis of all parameters:
 #####################
+# !!!Attention!!!
+# the sensitivity analysis takes more than 1hr to run. The simulation results are saved in the csv file entitled "sen_tIntro_K_P.csv". If you just want to play with the simulation results and don't do new sensitivy analysis, you can skip this section and jump to the next section about visualization.
+
 sen_tIntro_K_P <- NULL
 
 t_seq = seq(0,10, by=0.5)
@@ -277,31 +300,62 @@ head(sen_tIntro_K_P)
 sen_tIntro_K_P$P1_Perc = sen_tIntro_K_P$P1_end_biomass/sen_tIntro_K_P$sum_biomass
 
 ######################
-#### visualization
+#### section 3: visualization of senstivity analysis
 ######################
 require("plot3D")
 ## Loading required package: plot3D
 ## Warning: package 'plot3D' was built under R version 3.6.3
-par(cex=2)
-optimization.df <- read.csv("…\\all.regime.csv",header = T) # the sensitivity analysis results.
-optimization.df$W_T <- optimization.df$W_T*149.6 # million m3
-optimization.df$DOC_C <- 100-optimization.df$DOC_C*100 # percentage
+require(plot3Drgl) # In an extension package, plot3Drgl, a similar function, plotrgl, plots the graphs to the device, opened with rgl. This allows interactive zooming, rotating, etc... 
+
+my_wd = readClipboard()
+setwd(my_wd)
+
+par(cex=1)
+# the sensitivity analysis results.
+sen_tIntro_K_P <- read.csv("sen_tIntro_K_P.csv")
 
 x <- sen_tIntro_K_P$t_intro2
 y <- sen_tIntro_K_P$K2_to_K1
 z <- sen_tIntro_K_P$P2_to_P1
 P1_Perc <- sen_tIntro_K_P$P1_Perc
 
-#png("…\\Optimization.png",width = 16,height = 12,units = "cm",res = 300)
+
+png("sensitivity_analysis.png",width = 16,height = 12,units = "cm",res = 300)
 scatter3D(x,y,z,
           colvar = P1_Perc,
-          xlab="Spec 2 introducing d",
-          ylab="Carrying cap K2/K1",
-          zlab="Init biomass P2/P1",
-          clab = c("Spec 1 percentage"),
-          pch=20,phi=0,theta = 60,bty="g",main="Optimization",
-          ticktype="simple",cex=1)
+          xlab="A: Spec 2 introducing d",
+          ylab="B: Carrying cap K2/K1",
+          zlab="C: Init biomass P2/P1",
+          clab = c("D: Spec 1 percentage"),
+          pch=20,phi=0,theta = 60,bty="g",main="",
+          ticktype="detailed", # to have axes ticks
+          cex=1,
+          facets=NA,
+          alpha=0.6, lighting=TRUE,
+          colkey = list(tick=FALSE,labels=TRUE,cex.axis=0.8),
+          col=(terrain.colors(100)))
+
+
+dev.off()
+jet.col (n = 100, alpha = 1)
+
+# This opens a device window, which allows interactive zooming, rotating, etc...
+scatter3Drgl(x,y,z,
+             colvar = P1_Perc,
+             xlab="A: Spec 2 introducing d",
+             ylab="B: Carrying cap K2/K1",
+             zlab="C: Init biomass P2/P1",
+             clab = c("D: Spec 1 percentage"),
+             pch=20,phi=0,theta = 60,bty="g",main="",
+             ticktype="detailed", # to have axes ticks
+             cex=1,
+             facets=NA,
+             alpha=0.6, lighting=TRUE,
+             colkey = list(tick=FALSE,labels=TRUE,cex.axis=0.8),
+             col=(terrain.colors(100)))
 
 # scatter3D(x=df.regime2$Q_thres,y=df.regime2$DOC_thres,z=df.regime2$W_T*149.6,colvar=df.regime2$DOC_C*100,add = T,type="l",colkey = F,lwd=10)
 
-write.csv(sen_tIntro_K_P,".../1stCome1stServed/sen_tIntro_K_P.csv")
+# write.csv(sen_tIntro_K_P,".../1stCome1stServed/sen_tIntro_K_P.csv")
+
+
